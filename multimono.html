@@ -1,124 +1,95 @@
 <!DOCTYPE html>
-<html>
+<html lang="ru">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Brand Tycoon</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <style>
         :root {
-            --bg: #0a0a0a;
-            --card-bg: #1a1a1a;
+            --bg-color: #0e0e0e;
+            --card-bg: #1c1c1c;
             --accent: #0088cc;
+            --money-color: #2ecc71;
         }
-        body { background: var(--bg); color: #fff; font-family: 'Segoe UI', sans-serif; margin: 0; display: flex; flex-direction: column; height: 100vh; }
-        
-        .header { padding: 15px; background: #111; display: flex; justify-content: space-between; border-bottom: 1px solid #333; }
-        .balance { color: #2ecc71; font-weight: bold; }
 
-        /* Контейнер для списка карточек */
-        .game-viewport { flex: 1; overflow-y: auto; padding: 10px; display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
-        
+        body {
+            background-color: var(--bg-color);
+            color: white;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            margin: 0;
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+            overflow: hidden;
+        }
+
+        /* Шапка */
+        .header {
+            padding: 15px;
+            background: #161616;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid #333;
+        }
+
+        .balance {
+            font-size: 20px;
+            font-weight: bold;
+            color: var(--money-color);
+        }
+
+        /* Сетка брендов */
+        .board {
+            flex: 1;
+            overflow-y: auto;
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 10px;
+            padding: 15px;
+            scroll-behavior: smooth;
+        }
+
         .brand-card {
             background: var(--card-bg);
-            border-radius: 12px;
-            padding: 10px;
+            border-radius: 15px;
+            padding: 12px;
             text-align: center;
             border: 2px solid transparent;
-            transition: 0.3s;
-            position: relative;
+            transition: all 0.3s ease;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .brand-card img {
+            width: 40px;
+            height: 40px;
+            margin-bottom: 8px;
+            border-radius: 8px;
+            background: white; /* Для логотипов на прозрачном фоне */
+            padding: 2px;
+        }
+
+        .brand-card.active {
+            border-color: #f1c40f;
+            box-shadow: 0 0 20px rgba(241, 196, 15, 0.3);
+            transform: scale(1.05);
+            background: #252525;
+        }
+
+        .brand-name {
             font-size: 11px;
+            font-weight: bold;
+            margin-bottom: 4px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            width: 100%;
         }
 
-        .brand-card.active { border-color: #f1c40f; box-shadow: 0 0 15px #f1c40f; transform: scale(1.05); z-index: 5; }
-        
-        /* Цвета групп */
-        .group-it { border-top: 4px solid #3498db; }
-        .group-auto { border-top: 4px solid #e74c3c; }
-        .group-luxury { border-top: 4px solid #f1c40f; }
-        .group-food { border-top: 4px solid #f39c12; }
-        .group-fashion { border-top: 4px solid #ff5e57; }
-
-        .footer { padding: 20px; background: #111; border-top: 1px solid #333; text-align: center; }
-        .roll-btn { 
-            background: var(--accent); color: white; border: none; padding: 15px 60px; 
-            border-radius: 50px; font-size: 18px; font-weight: bold; width: 80%;
-        }
-    </style>
-</head>
-<body>
-
-    <div class="header">
-        <div id="user">Игрок</div>
-        <div class="balance">$ <span id="money">2000</span></div>
-    </div>
-
-    <div class="game-viewport" id="board">
-        </div>
-
-    <div class="footer">
-        <div id="status" style="margin-bottom: 10px; font-size: 14px; color: #888;">Ваш ход</div>
-        <button class="roll-btn" onclick="makeStep()">БРОСИТЬ КУБИК 🎲</button>
-    </div>
-
-    <script>
-        const tg = window.Telegram.WebApp;
-        tg.expand();
-
-        const brands = [
-            { name: "NVIDIA", price: 1200, group: "it" }, { name: "Apple", price: 1100, group: "it" },
-            { name: "Google", price: 1000, group: "it" }, { name: "Microsoft", price: 950, group: "it" },
-            { name: "Amazon", price: 900, group: "it" }, { name: "Samsung", price: 700, group: "it" },
-            { name: "Tesla", price: 850, group: "auto" }, { name: "Porsche", price: 800, group: "auto" },
-            { name: "BMW", price: 750, group: "auto" }, { name: "Mercedes", price: 780, group: "auto" },
-            { name: "Lamborghini", price: 900, group: "auto" }, { name: "Ferrari", price: 950, group: "auto" },
-            { name: "Gucci", price: 600, group: "luxury" }, { name: "Louis Vuitton", price: 700, group: "luxury" },
-            { name: "Rolex", price: 850, group: "luxury" }, { name: "Chanel", price: 650, group: "luxury" },
-            { name: "Dior", price: 620, group: "luxury" }, { name: "Coca-Cola", price: 150, group: "food" },
-            { name: "Red Bull", price: 180, group: "food" }, { name: "Starbucks", price: 200, group: "food" },
-            { name: "McDonald’s", price: 300, group: "food" }, { name: "Nike", price: 400, group: "fashion" },
-            { name: "Adidas", price: 380, group: "fashion" }, { name: "Supreme", price: 500, group: "fashion" },
-            { name: "LEGO", price: 450, group: "fashion" }, { name: "Netflix", price: 300, group: "it" },
-            { name: "Nintendo", price: 550, group: "it" }, { name: "Spotify", price: 200, group: "it" }
-            // Можно добавить остальные аналогично
-        ];
-
-        let pos = 0;
-        const board = document.getElementById('board');
-
-        function initBoard() {
-            board.innerHTML = '';
-            brands.forEach((b, i) => {
-                const card = document.createElement('div');
-                card.className = `brand-card group-${b.group} ${i === pos ? 'active' : ''}`;
-                card.id = `card-${i}`;
-                card.innerHTML = `<b>${b.name}</b><br>$${b.price}`;
-                board.appendChild(card);
-            });
-        }
-
-        function makeStep() {
-            const dice = Math.floor(Math.random() * 6) + 1;
-            document.getElementById('status').innerText = `Выпало: ${dice}`;
-            
-            // Убираем старую подсветку
-            document.getElementById(`card-${pos}`).classList.remove('active');
-            
-            // Считаем новую позицию
-            pos = (pos + dice) % brands.length;
-            
-            // Добавляем новую подсветку и скроллим к ней
-            const newCard = document.getElementById(`card-${pos}`);
-            newCard.classList.add('active');
-            newCard.scrollIntoView({ behavior: 'smooth', block: 'center' });
-
-            // Покупка
-            const brand = brands[pos];
-            setTimeout(() => {
-                tg.showConfirm(`Вы хотите купить ${brand.name} за $${brand.price}?`);
-            }, 600);
-        }
-
-        initBoard();
-    </script>
-</body>
-</html>
+        .brand-price {
+            font-size: 10px;
+            color: #888;
