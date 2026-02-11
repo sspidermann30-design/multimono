@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Brand Tycoon Pro</title>
+    <title>Brand Tycoon Pro Max</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <style>
         :root {
@@ -14,140 +14,46 @@
         }
 
         body {
-            margin: 0;
-            background: var(--bg);
-            color: white;
-            font-family: 'Segoe UI', sans-serif;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            height: 100vh;
-            overflow: hidden;
+            margin: 0; background: var(--bg); color: white;
+            font-family: 'Segoe UI', sans-serif; display: flex;
+            justify-content: center; align-items: center;
+            height: 100vh; overflow: hidden;
         }
 
-        /* МЕНЮ */
         .overlay {
-            position: fixed;
-            inset: 0;
+            position: fixed; inset: 0;
             background: radial-gradient(circle, #222 0%, #000 100%);
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            z-index: 1000;
+            display: flex; justify-content: center; align-items: center; z-index: 1000;
         }
 
-        .menu-content {
-            text-align: center;
-            width: 80%;
-            background: #222;
-            padding: 30px;
-            border-radius: 25px;
-            border: 1px solid #444;
-        }
+        .menu-content { text-align: center; width: 80%; background: #222; padding: 30px; border-radius: 25px; border: 1px solid #444; }
 
-        /* ПОЛЕ */
-        #game-container {
-            display: none;
-            flex-direction: column;
-            align-items: center;
-            width: 100%;
-        }
+        #game-container { display: none; flex-direction: column; align-items: center; width: 100%; }
 
         #board {
-            display: grid;
-            grid-template-columns: repeat(6, 1fr);
-            grid-template-rows: repeat(12, 1fr);
-            gap: 2px;
-            width: 95vw;
-            height: 80vh;
-            background: #333;
-            position: relative;
+            display: grid; grid-template-columns: repeat(6, 1fr); grid-template-rows: repeat(12, 1fr);
+            gap: 2px; width: 95vw; height: 80vh; background: #333; position: relative;
         }
 
-        .cell {
-            background: var(--cell-bg);
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            font-size: 8px;
-            text-align: center;
-            position: relative;
-        }
-
+        .cell { background: var(--cell-bg); display: flex; flex-direction: column; align-items: center; justify-content: center; font-size: 8px; text-align: center; position: relative; }
         .cell img { width: 60%; max-height: 25px; object-fit: contain; }
-
         .group-line { position: absolute; top: 0; left: 0; width: 100%; height: 4px; }
 
-        /* ЦЕНТР */
-        .board-center {
-            grid-column: 2 / 6;
-            grid-row: 2 / 12;
-            background: var(--bg);
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            align-items: center;
-            padding: 15px;
-        }
+        .board-center { grid-column: 2 / 6; grid-row: 2 / 12; background: var(--bg); display: flex; flex-direction: column; justify-content: center; align-items: center; padding: 15px; }
 
-        /* КАРТОЧКА */
-        .buy-card {
-            background: white;
-            color: black;
-            padding: 20px;
-            border-radius: 15px;
-            width: 85%;
-            box-shadow: 0 5px 15px rgba(0,0,0,0.3);
-        }
+        .buy-card { background: white; color: black; padding: 20px; border-radius: 15px; width: 85%; box-shadow: 0 5px 15px rgba(0,0,0,0.3); text-align: center; }
 
-        .btn {
-            border: none;
-            padding: 12px;
-            border-radius: 10px;
-            font-weight: bold;
-            width: 100%;
-            margin-top: 10px;
-            font-size: 14px;
-            cursor: pointer;
-        }
-
+        .btn { border: none; padding: 12px; border-radius: 10px; font-weight: bold; width: 100%; margin-top: 10px; font-size: 14px; cursor: pointer; }
         .btn-buy { background: #2ed573; color: white; }
+        .btn-skip { background: #e74c3c; color: white; }
         .btn-stock { background: #ffa502; color: white; }
-        .btn-invite { background: #3498db; color: white; }
-        
-        .btn-roll {
-            background: var(--accent-blue);
-            color: white;
-            padding: 15px 40px;
-            border-radius: 50px;
-            font-size: 18px;
-            margin: 10px 0;
-        }
+        .btn-roll { background: var(--accent-blue); color: white; padding: 15px 40px; border-radius: 50px; font-size: 18px; margin: 10px 0; }
 
-        /* ФИШКА */
-        .player {
-            width: 14px;
-            height: 14px;
-            background: var(--p1-color);
-            border-radius: 50%;
-            border: 2px solid white;
-            position: absolute;
-            z-index: 100;
-            transition: all 0.25s linear; /* Линейная анимация для плавности шагов */
-        }
+        .player { width: 14px; height: 14px; background: var(--p1-color); border-radius: 50%; border: 2px solid white; position: absolute; z-index: 100; transition: all 0.2s linear; }
 
-        .level-tag {
-            position: absolute;
-            bottom: 2px; right: 2px;
-            background: #ffa502; color: black;
-            font-size: 7px; padding: 1px 3px; border-radius: 3px;
-        }
+        .level-tag { position: absolute; bottom: 2px; right: 2px; background: #ffa502; color: black; font-size: 7px; padding: 1px 3px; border-radius: 3px; }
 
-        @keyframes moneyFloat {
-            0% { transform: translateY(0); opacity: 1; }
-            100% { transform: translateY(-30px); opacity: 0; }
-        }
+        @keyframes moneyFloat { 0% { transform: translateY(0); opacity: 1; } 100% { transform: translateY(-30px); opacity: 0; } }
     </style>
 </head>
 <body>
@@ -156,15 +62,12 @@
         <div class="menu-content">
             <h1>BRAND TYCOON</h1>
             <button class="btn btn-buy" style="font-size: 18px; height: 60px;" onclick="start()">ИГРАТЬ</button>
-            <button class="btn btn-invite" onclick="inviteFriend()">ПРИГЛАСИТЬ ДРУГА ✉️</button>
         </div>
     </div>
 
     <div id="game-container">
         <div id="board">
-            <div class="board-center" id="centerArea">
-                <h2 style="color:#222">BRAND TYCOON</h2>
-            </div>
+            <div class="board-center" id="centerArea"><h2 style="color:#222">BRAND TYCOON</h2></div>
         </div>
         <div id="status" style="padding: 10px;">Баланс: <span id="money" style="color:#2ed573; font-weight:bold;">2500</span>$</div>
         <button id="rollBtn" class="btn-roll" onclick="roll()">КУБИК 🎲</button>
@@ -192,48 +95,24 @@
         const chanceCards = [
             { text: "Налоговый штраф: -150$", action: () => updateBalance(-150) },
             { text: "Прибыль с акций: +200$", action: () => updateBalance(200) },
-            { text: "Кэшбэк за покупки: +100$", action: () => updateBalance(100) },
-            { text: "Ремонт оборудования: -200$", action: () => updateBalance(-200) }
+            { text: "Кэшбэк: +100$", action: () => updateBalance(100) }
         ];
 
-        let pos = 0;
-        let balance = 2500;
-        const totalCells = 32; 
-        const ownedCells = {}; 
-        const stockLevels = {};
-        let isMoving = false;
+        let pos = 0; let balance = 2500; const totalCells = 32; 
+        const ownedCells = {}; const stockLevels = {}; let isMoving = false;
 
-        function updateBalance(amount) {
-            balance += amount;
-            document.getElementById('money').innerText = balance;
-        }
+        function updateBalance(amount) { balance += amount; document.getElementById('money').innerText = balance; }
 
-        function inviteFriend() {
-            const botUrl = "https://t.me/твой_бот_юзернейм/app"; // СЮДА ВПИШИ ССЫЛКУ
-            tg.openTelegramLink(`https://t.me/share/url?url=${encodeURIComponent(botUrl)}&text=Давай играть в Монополию брендов!`);
-        }
-
-        function start() {
-            document.getElementById('lobby').style.display = 'none';
-            document.getElementById('game-container').style.display = 'flex';
-            drawBoard();
-        }
+        function start() { document.getElementById('lobby').style.display = 'none'; document.getElementById('game-container').style.display = 'flex'; drawBoard(); }
 
         function drawBoard() {
-            const board = document.getElementById('board');
-            let bIdx = 0;
+            const board = document.getElementById('board'); let bIdx = 0;
             for (let i = 0; i < totalCells; i++) {
-                const cell = document.createElement('div');
-                cell.className = 'cell';
-                cell.id = `c${i}`;
+                const cell = document.createElement('div'); cell.className = 'cell'; cell.id = `c${i}`;
                 let r, c;
-                if (i < 6) { r = 1; c = i + 1; }
-                else if (i < 17) { r = i - 4; c = 6; }
-                else if (i < 22) { r = 12; c = 6 - (i - 16); }
-                else { r = 12 - (i - 21); c = 1; }
+                if (i < 6) { r = 1; c = i + 1; } else if (i < 17) { r = i - 4; c = 6; } else if (i < 22) { r = 12; c = 6 - (i - 16); } else { r = 12 - (i - 21); c = 1; }
                 cell.style.gridRow = r; cell.style.gridColumn = c;
-
-                if (i === 0) cell.innerHTML = "<b>СТАРТ</b><br>+200$";
+                if (i === 0) cell.innerHTML = "<b>СТАРТ</b><br>+1000$";
                 else if (i === 5) cell.innerHTML = "<b>ТЮРЬМА</b>";
                 else if (i === 16) cell.innerHTML = "<b>ОТДЫХ</b>";
                 else if (i === 21) cell.innerHTML = "<b>В ТЮРЬМУ</b>";
@@ -241,80 +120,64 @@
                 else {
                     const b = brands[bIdx % brands.length];
                     cell.innerHTML = `<div class="group-line" style="background:${b.c}"></div><img src="${b.img}"><span>${b.p}$</span>`;
-                    cell.dataset.brandIdx = bIdx % brands.length;
-                    bIdx++;
+                    cell.dataset.brandIdx = bIdx % brands.length; bIdx++;
                 }
                 board.appendChild(cell);
             }
-            const p = document.createElement('div');
-            p.className = 'player'; p.id = 'p1';
-            board.appendChild(p);
+            const p = document.createElement('div'); p.className = 'player'; p.id = 'p1'; board.appendChild(p);
             updateTokenPos();
         }
 
         function updateTokenPos() {
-            const cell = document.getElementById(`c${pos}`);
-            const p = document.getElementById('p1');
-            p.style.left = (cell.offsetLeft + (cell.offsetWidth/2) - 7) + 'px';
-            p.style.top = (cell.offsetTop + (cell.offsetHeight/2) - 7) + 'px';
+            const cell = document.getElementById(`c${pos}`); const p = document.getElementById('p1');
+            p.style.left = (cell.offsetLeft + (cell.offsetWidth/2) - 7) + 'px'; p.style.top = (cell.offsetTop + (cell.offsetHeight/2) - 7) + 'px';
         }
 
         async function roll() {
             if (isMoving) return;
-            isMoving = true;
-            document.getElementById('rollBtn').disabled = true;
-
+            document.getElementById('rollBtn').style.display = 'none'; isMoving = true;
             const steps = Math.floor(Math.random() * 6) + 1;
-            const center = document.getElementById('centerArea');
-            center.innerHTML = `<h1>🎲 ${steps}</h1>`;
-
+            document.getElementById('centerArea').innerHTML = `<h1>🎲 ${steps}</h1>`;
             for (let i = 0; i < steps; i++) {
                 pos = (pos + 1) % totalCells;
-                
-                // Эффект прохода через Старт
-                if (pos === 0) {
-                    updateBalance(200);
-                    showMoneyPopup();
-                }
-
-                updateTokenPos();
-                await new Promise(r => setTimeout(r, 400)); // Скорость передвижения
+                if (pos === 0) { updateBalance(1000); showMoneyPopup(1000); }
+                updateTokenPos(); await new Promise(r => setTimeout(r, 200));
             }
-
-            processCell();
-            isMoving = false;
-            document.getElementById('rollBtn').disabled = false;
+            processCell(); isMoving = false;
         }
 
-        function showMoneyPopup() {
-            const popup = document.createElement('div');
-            popup.innerText = "+200$";
+        function showMoneyPopup(val) {
+            const popup = document.createElement('div'); popup.innerText = `+${val}$`;
             popup.style = "position:absolute; color:#2ed573; font-weight:bold; animation: moneyFloat 1s forwards; z-index:200;";
-            document.getElementById(`c0`).appendChild(popup);
-            setTimeout(() => popup.remove(), 1000);
+            document.getElementById(`c${pos}`).appendChild(popup); setTimeout(() => popup.remove(), 1000);
         }
 
         function processCell() {
-            const cell = document.getElementById(`c${pos}`);
-            const bIdx = cell.dataset.brandIdx;
+            const cell = document.getElementById(`c${pos}`); const bIdx = cell.dataset.brandIdx;
             const center = document.getElementById('centerArea');
-
             if (bIdx !== undefined) {
                 const b = brands[bIdx];
-                if (!ownedCells[pos]) {
-                    showBuyCard(b);
-                } else {
+                if (!ownedCells[pos]) { showBuyCard(b); }
+                else {
+                    let profit = Math.floor(b.p * 0.1); 
+                    if (isGroupComplete(b.group)) profit = Math.floor(profit * 1.2); // +20% за группу
+                    const lvl = stockLevels[pos] || 0;
+                    profit += Math.floor(profit * (lvl * 0.5)); // +50% за акцию
+                    updateBalance(profit); showMoneyPopup(profit);
                     if (isGroupComplete(b.group)) showUpgradeCard(b);
-                    else center.innerHTML = `<h3>${b.n}</h3><p>Ваш актив</p>`;
+                    else { center.innerHTML = `<h3>${b.n}</h3><p>Доход: ${profit}$</p>`; showDoneBtn(); }
                 }
             } else {
                 const text = cell.innerText;
                 if (text.includes("ШАНС")) showChance();
-                else if (text.includes("В ТЮРЬМУ")) {
-                    pos = 5;
-                    setTimeout(() => { updateTokenPos(); center.innerHTML = "<h3>АРЕСТ!</h3>"; }, 400);
-                } else center.innerHTML = `<h3>${text}</h3>`;
+                else if (text.includes("В ТЮРЬМУ")) { pos = 5; setTimeout(() => { updateTokenPos(); center.innerHTML = "<h3>АРЕСТ!</h3>"; showDoneBtn(); }, 400); }
+                else { center.innerHTML = `<h3>${text}</h3>`; showDoneBtn(); }
             }
+        }
+
+        function showDoneBtn() {
+            const btn = document.createElement('button'); btn.className = 'btn btn-buy'; btn.innerText = 'ПОНЯТНО';
+            btn.onclick = () => closeCenter(); document.getElementById('centerArea').appendChild(btn);
         }
 
         function showBuyCard(b) {
@@ -323,49 +186,36 @@
                     <img src="${b.img}" style="width:40px">
                     <h2>${b.n}</h2>
                     <button class="btn btn-buy" onclick="buyProcess(${b.p})">КУПИТЬ ЗА ${b.p}$</button>
+                    <button class="btn btn-skip" onclick="closeCenter()">ОТКАЗАТЬСЯ</button>
                 </div>`;
         }
 
         function buyProcess(price) {
-            if (balance >= price) {
-                updateBalance(-price);
-                ownedCells[pos] = true;
-                document.getElementById(`c${pos}`).style.background = 'rgba(255, 71, 87, 0.4)';
-                document.getElementById('centerArea').innerHTML = "<h3>Куплено!</h3>";
-            }
+            if (balance >= price) { updateBalance(-price); ownedCells[pos] = true; document.getElementById(`c${pos}`).style.background = 'rgba(255, 71, 87, 0.4)'; closeCenter(); }
+            else { alert("Мало денег!"); }
         }
 
+        function closeCenter() { document.getElementById('rollBtn').style.display = 'block'; document.getElementById('centerArea').innerHTML = '<h2 style="color:#222">BRAND TYCOON</h2>'; }
+
         function isGroupComplete(group) {
-            const groupTotal = brands.filter(b => b.group === group).length;
-            const myTotal = brands.filter((b, i) => {
-                const cell = Array.from(document.querySelectorAll('.cell')).find(c => c.dataset.brandIdx == i);
-                return cell && ownedCells[cell.id.replace('c','')];
-            }).length;
-            return myTotal >= groupTotal;
+            const total = brands.filter(b => b.group === group).length;
+            const my = brands.filter((b, i) => { const c = Array.from(document.querySelectorAll('.cell')).find(cl => cl.dataset.brandIdx == i); return c && ownedCells[c.id.replace('c','')]; }).length;
+            return my >= total;
         }
 
         function showUpgradeCard(b) {
-            const lvl = stockLevels[pos] || 0;
-            const cost = Math.floor(b.p * 0.8);
+            const lvl = stockLevels[pos] || 0; const cost = Math.floor(b.p * 0.8);
             document.getElementById('centerArea').innerHTML = `
                 <div class="buy-card" style="border: 2px solid gold">
                     <h2>Акции ${b.n}</h2>
                     <p>Lvl: ${lvl}</p>
                     <button class="btn btn-stock" onclick="upgradeProcess(${cost})">КУПИТЬ АКЦИЮ ${cost}$</button>
+                    <button class="btn" style="background:#ccc" onclick="closeCenter()">ЗАВЕРШИТЬ ХОД</button>
                 </div>`;
         }
 
         function upgradeProcess(cost) {
-            if (balance >= cost) {
-                updateBalance(-cost);
-                stockLevels[pos] = (stockLevels[pos] || 0) + 1;
-                const c = document.getElementById(`c${pos}`);
-                if (!c.querySelector('.level-tag')) {
-                    const t = document.createElement('div'); t.className = 'level-tag'; c.appendChild(t);
-                }
-                c.querySelector('.level-tag').innerText = 'Lvl ' + stockLevels[pos];
-                document.getElementById('centerArea').innerHTML = "<h3>Lvl UP!</h3>";
-            }
+            if (balance >= cost) { updateBalance(-cost); stockLevels[pos] = (stockLevels[pos] || 0) + 1; const c = document.getElementById(`c${pos}`); if (!c.querySelector('.level-tag')) { const t = document.createElement('div'); t.className = 'level-tag'; c.appendChild(t); } c.querySelector('.level-tag').innerText = 'Lvl ' + stockLevels[pos]; closeCenter(); }
         }
 
         function showChance() {
@@ -374,14 +224,11 @@
                 <div class="buy-card" style="border: 2px dashed #1e90ff">
                     <h2 style="color:#1e90ff">ШАНС ❓</h2>
                     <p>${card.text}</p>
-                    <button class="btn btn-buy" onclick="applyChance(${chanceCards.indexOf(card)})">OK</button>
+                    <button class="btn btn-buy" onclick="applyChance(${chanceCards.indexOf(card)})">ПРИНЯТЬ</button>
                 </div>`;
         }
 
-        function applyChance(idx) {
-            chanceCards[idx].action();
-            document.getElementById('centerArea').innerHTML = "<h3>Выполнено!</h3>";
-        }
+        function applyChance(idx) { chanceCards[idx].action(); closeCenter(); }
     </script>
 </body>
 </html>
