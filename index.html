@@ -7,240 +7,295 @@
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <style>
         :root {
-            --bg-color: #0e0e0e;
-            --card-bg: #1c1c1c;
-            --accent: #0088cc;
-            --money-color: #2ecc71;
+            --bg-color: #1a1a1a;
+            --card-bg: #222;
+            --accent-green: #28a745;
+            --accent-blue: #3498db;
         }
 
         body {
+            margin: 0;
             background-color: var(--bg-color);
             color: white;
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-            margin: 0;
+            font-family: 'Segoe UI', Roboto, sans-serif;
             display: flex;
-            flex-direction: column;
+            justify-content: center;
+            align-items: center;
             height: 100vh;
             overflow: hidden;
         }
 
-        /* Шапка */
-        .header {
-            padding: 15px;
-            background: #161616;
+        /* МЕНЮ ЛОББИ */
+        .overlay {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: radial-gradient(circle, #333 0%, #000 100%);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+        }
+
+        .menu-content {
+            background: #222;
+            padding: 25px;
+            border-radius: 20px;
+            border: 2px solid #444;
+            text-align: center;
+            width: 85%;
+            max-width: 400px;
+        }
+
+        .lobby-list {
+            max-height: 200px;
+            overflow-y: auto;
+            margin: 15px 0;
+            background: #111;
+            border-radius: 10px;
+            padding: 10px;
+        }
+
+        .lobby-item {
+            background: #333;
+            margin-bottom: 8px;
+            padding: 12px;
+            border-radius: 8px;
             display: flex;
             justify-content: space-between;
             align-items: center;
-            border-bottom: 1px solid #333;
         }
 
-        .balance {
-            font-size: 20px;
-            font-weight: bold;
-            color: var(--money-color);
+        /* ИГРОВОЕ ПОЛЕ */
+        #game-container {
+            display: none; /* Скрыто до нажатия Старт */
+            flex-direction: column;
+            align-items: center;
         }
 
-        /* Сетка брендов */
-        .board {
-            flex: 1;
-            overflow-y: auto;
+        #board {
             display: grid;
-            grid-template-columns: repeat(3, 1fr);
-            gap: 10px;
-            padding: 15px;
-            scroll-behavior: smooth;
+            grid-template-columns: repeat(10, 1fr);
+            grid-template-rows: repeat(10, 1fr);
+            gap: 2px;
+            width: 98vw;
+            height: 98vw;
+            max-width: 600px;
+            max-height: 600px;
+            background: #444;
+            position: relative;
         }
 
-        .brand-card {
+        /* КЛЕТКИ */
+        .cell {
             background: var(--card-bg);
-            border-radius: 15px;
-            padding: 12px;
-            text-align: center;
-            border: 2px solid transparent;
-            transition: all 0.3s ease;
+            border: 1px solid #333;
             display: flex;
             flex-direction: column;
             align-items: center;
+            justify-content: space-between;
+            font-size: 6px;
+            padding: 2px 0;
+            position: relative;
+        }
+
+        .cell b { font-size: 8px; }
+        .cell img { width: 70%; max-height: 20px; object-fit: contain; }
+
+        /* ЦЕНТР ПОЛЯ */
+        .board-center {
+            grid-column: 2 / 10;
+            grid-row: 2 / 10;
+            background: #1a1a1a;
+            display: flex;
             justify-content: center;
+            align-items: center;
+            position: relative;
         }
 
-        .brand-card img {
-            width: 40px;
-            height: 40px;
-            margin-bottom: 8px;
-            border-radius: 8px;
-            background: white; /* Для логотипов на прозрачном фоне */
-            padding: 2px;
-        }
-
-        .brand-card.active {
-            border-color: #f1c40f;
-            box-shadow: 0 0 20px rgba(241, 196, 15, 0.3);
-            transform: scale(1.05);
-            background: #252525;
-        }
-
-        .brand-name {
-            font-size: 11px;
-            font-weight: bold;
-            margin-bottom: 4px;
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
-            width: 100%;
-        }
-
-        .brand-price {
-            font-size: 10px;
-            color: #888;
-        }
-
-        /* Нижняя панель */
-        .controls {
-            padding: 20px;
-            background: #161616;
-            border-top: 1px solid #333;
+        /* КАРТОЧКА В ЦЕНТРЕ */
+        .brand-card-display {
+            background: white;
+            color: black;
+            width: 80%;
+            padding: 15px;
+            border-radius: 12px;
             text-align: center;
+            box-shadow: 0 0 20px rgba(255,255,255,0.1);
+            animation: popIn 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+
+        @keyframes popIn {
+            from { transform: scale(0.5); opacity: 0; }
+            to { transform: scale(1); opacity: 1; }
+        }
+
+        /* КНОПКИ */
+        button {
+            cursor: pointer;
+            font-weight: bold;
+            transition: 0.2s;
+        }
+
+        .main-btn {
+            background: var(--accent-green);
+            color: white; border: none; padding: 12px 20px;
+            border-radius: 10px; width: 100%; font-size: 16px;
         }
 
         .roll-btn {
-            background: var(--accent);
-            color: white;
-            border: none;
-            padding: 16px;
-            width: 90%;
-            border-radius: 15px;
+            margin-top: 15px;
+            padding: 15px 40px;
+            background: var(--accent-blue);
+            color: white; border: none; border-radius: 30px;
             font-size: 18px;
-            font-weight: bold;
-            cursor: pointer;
-            box-shadow: 0 4px 15px rgba(0, 136, 204, 0.3);
         }
 
-        .roll-btn:active {
-            transform: scale(0.98);
-        }
-
-        #status-text {
-            margin-bottom: 10px;
-            font-size: 14px;
-            color: #aaa;
+        /* ФИШКА ИГРОКА */
+        .player-token {
+            width: 15px; height: 15px;
+            background: red; border-radius: 50%;
+            border: 2px solid white;
+            position: absolute;
+            z-index: 50;
+            transition: all 0.4s ease;
         }
     </style>
 </head>
 <body>
 
-    <div class="header">
-        <div id="user-name">Загрузка...</div>
-        <div class="balance">$<span id="balance-val">2500</span></div>
+    <div id="lobby-menu" class="overlay">
+        <div class="menu-content">
+            <h1>Brand Tycoon</h1>
+            <div class="lobby-list" id="lobbyList">
+                <div class="lobby-item"><span>Мир #1 (Обычный)</span> <span>1/4👤</span> <button onclick="startGame()">ВХОД</button></div>
+            </div>
+            <button class="main-btn" onclick="showCreate()">СОЗДАТЬ СВОЮ ИГРУ</button>
+        </div>
     </div>
 
-    <div class="board" id="board">
+    <div id="game-container">
+        <div id="board">
+            <div class="board-center" id="centerArea">
+                <div style="text-align:center; color:#444;">
+                    <h2>BRAND<br>TYCOON</h2>
+                    <p>Бросайте кубик</p>
+                </div>
+            </div>
         </div>
-
-    <div class="controls">
-        <div id="status-text">Ваш ход!</div>
-        <button class="roll-btn" onclick="play()">БРОСИТЬ КУБИК 🎲</button>
+        <div id="status-text" style="margin-top:10px;">Баланс: <span id="balance">2500</span>$</div>
+        <button class="roll-btn" onclick="rollDice()">БРОСИТЬ КУБИК 🎲</button>
     </div>
 
     <script>
-    const tg = window.Telegram.WebApp;
-tg.expand();
+        const tg = window.Telegram.WebApp;
+        tg.expand();
 
-document.getElementById('user-name').innerText = tg.initDataUnsafe.user?.first_name || "Магнат";
+        const brandsData = [
+            { name: "NVIDIA", price: 150, group: "it", color: "#76b900", logo: "img/nvidia.png" },
+            { name: "Apple", price: 200, group: "it", color: "#3498db", logo: "img/apple.png" },
+            { name: "Google", price: 250, group: "it", color: "#3498db", logo: "img/google.png" },
+            { name: "Microsoft", price: 300, group: "it", color: "#3498db", logo: "img/microsoft.png" },
+            { name: "Tesla", price: 400, group: "auto", color: "#e74c3c", logo: "https://cdn-icons-png.flaticon.com/512/5969/5969046.png" },
+            { name: "BMW", price: 350, group: "auto", color: "#e74c3c", logo: "https://cdn-icons-png.flaticon.com/512/5968/5968144.png" }
+            // Добавь сюда остальные 30 брендов по аналогии
+        ];
 
-// База данных брендов с распределением по группам (цветам)
-const brandData = [
-    { name: "NVIDIA", price: 150, group: "it", logo: "img/nvidia.png" },
-    { name: "Google", group: "it", color: "#3498db" }, { name: "Microsoft", group: "it", color: "#3498db" },
-    { name: "Amazon", group: "it", color: "#3498db" }, { name: "Tesla", group: "auto", color: "#e74c3c" },
-    { name: "Porsche", group: "auto", color: "#e74c3c" }, { name: "BMW", group: "auto", color: "#e74c3c" },
-    { name: "Toyota", group: "auto", color: "#e74c3c" }, { name: "Mercedes", group: "auto", color: "#e74c3c" },
-    { name: "Nike", group: "fashion", color: "#f39c12" }, { name: "Adidas", group: "fashion", color: "#f39c12" },
-    { name: "Puma", group: "fashion", color: "#f39c12" }, { name: "Gucci", group: "luxury", color: "#f1c40f" },
-    { name: "Rolex", group: "luxury", color: "#f1c40f" }, { name: "Dior", group: "luxury", color: "#f1c40f" },
-    { name: "Coca-Cola", group: "food", color: "#2ecc71" }, { name: "McDonald’s", group: "food", color: "#2ecc71" },
-    { name: "Starbucks", group: "food", color: "#2ecc71" }
-    // Можно дописывать остальные, соблюдая структуру
-];
+        let balance = 2500;
+        let currentPos = 0;
+        const totalCells = 36;
+        let cells = [];
 
-const brands = brandData.map((b, i) => ({
-    ...b,
-    price: 150 + (i * 30),
-    owned: false,
-    domain: b.name.toLowerCase().replace(/[^a-z0-9]/g, '') + ".com"
-}));
+        function startGame() {
+            document.getElementById('lobby-menu').style.display = 'none';
+            document.getElementById('game-container').style.display = 'flex';
+            initBoard();
+        }
 
-let currentPos = 0;
-let balance = 2500;
-let inventory = [];
+        function initBoard() {
+            const board = document.getElementById('board');
+            
+            for (let i = 0; i < totalCells; i++) {
+                const cell = document.createElement('div');
+                cell.className = 'cell';
+                cell.id = `cell-${i}`;
+                
+                // Координаты Grid для "Обруча"
+                let row, col;
+                if (i < 10) { row = 1; col = i + 1; } 
+                else if (i < 19) { row = i - 8; col = 10; }
+                else if (i < 28) { row = 10; col = 10 - (i - 18); }
+                else { row = 10 - (i - 27); col = 1; }
+                
+                cell.style.gridRow = row;
+                cell.style.gridColumn = col;
 
-function init() {
-    const board = document.getElementById('board');
-    board.innerHTML = '';
-    
-    brands.forEach((brand, i) => {
-        const card = document.createElement('div');
-        // Добавляем класс купленного товара, если он в инвентаре
-        card.className = `brand-card ${i === currentPos ? 'active' : ''} ${brand.owned ? 'owned' : ''}`;
-        card.id = `card-${i}`;
-        card.style.borderTop = `5px solid ${brand.color}`; // Полоска группы
-        
-        const logoUrl = `https://logo.clearbit.com/${brand.domain}`;
-        
-        card.innerHTML = `
-            <img src="${logoUrl}" onerror="this.src='https://img.icons8.com/ios/50/ffffff/company.png'">
-            <div class="brand-name">${brand.name}</div>
-            <div class="brand-price">${brand.owned ? 'КУПЛЕНО' : '$' + brand.price}</div>
-        `;
-        board.appendChild(card);
-    });
-}
-
-function checkCollection(groupName) {
-    const groupItems = brands.filter(b => b.group === groupName);
-    const ownedInGroup = groupItems.filter(b => b.owned);
-    
-    if (groupItems.length === ownedInGroup.length) {
-        balance += 1000; // Бонус за сбор коллекции
-        document.getElementById('balance-val').innerText = balance;
-        tg.showAlert(`🔥 МОНОПОЛИЯ! Вы собрали все бренды сектора ${groupName.toUpperCase()} и получили бонус $1000!`);
-    }
-}
-
-function play() {
-    const dice = Math.floor(Math.random() * 6) + 1;
-    document.getElementById('status-text').innerText = `Выпало: ${dice}`;
-    document.getElementById(`card-${currentPos}`).classList.remove('active');
-
-    currentPos = (currentPos + dice) % brands.length;
-    const newCard = document.getElementById(`card-${currentPos}`);
-    newCard.classList.add('active');
-    newCard.scrollIntoView({ behavior: 'smooth', block: 'center' });
-
-    const brand = brands[currentPos];
-    
-    if (!brand.owned) {
-        setTimeout(() => {
-            tg.showConfirm(`Купить ${brand.name} за $${brand.price}?`, (confirmed) => {
-                if (confirmed) {
-                    if (balance >= brand.price) {
-                        balance -= brand.price;
-                        brand.owned = true;
-                        document.getElementById('balance-val').innerText = balance;
-                        init(); // Перерисовываем доску, чтобы пометить как купленное
-                        checkCollection(brand.group);
-                    } else {
-                        tg.showAlert("Недостаточно денег!");
-                    }
+                if (i === 0) {
+                    cell.innerHTML = "<b>СТАРТ</b><div style='color:gold; font-size:10px;'>💰</div>";
+                    cell.style.background = "#333";
+                } else {
+                    const brand = brandsData[(i - 1) % brandsData.length];
+                    cell.innerHTML = `
+                        <div style="width:100%; height:4px; background:${brand.color}"></div>
+                        <img src="${brand.logo}">
+                        <span>${brand.price}$</span>
+                    `;
                 }
-            });
-        }, 500);
-    } else {
-        document.getElementById('status-text').innerText = `Это ваш бренд: ${brand.name}`;
-    }
-}
+                board.appendChild(cell);
+            }
+            createPlayer();
+        }
 
-init();
+        function createPlayer() {
+            const token = document.createElement('div');
+            token.className = 'player-token';
+            token.id = 'player';
+            document.getElementById('board').appendChild(token);
+            updatePlayerPosition();
+        }
+
+        function updatePlayerPosition() {
+            const cell = document.getElementById(`cell-${currentPos}`);
+            const player = document.getElementById('player');
+            const rect = cell.getBoundingClientRect();
+            const boardRect = document.getElementById('board').getBoundingClientRect();
+            
+            player.style.left = (cell.offsetLeft + 10) + 'px';
+            player.style.top = (cell.offsetTop + 10) + 'px';
+        }
+
+        function rollDice() {
+            const move = Math.floor(Math.random() * 6) + 1;
+            currentPos = (currentPos + move) % totalCells;
+            updatePlayerPosition();
+            
+            const currentBrand = brandsData[(currentPos - 1) % brandsData.length];
+            if (currentPos !== 0) {
+                showCard(currentBrand);
+            }
+        }
+
+        function showCard(brand) {
+            const center = document.getElementById('centerArea');
+            center.innerHTML = `
+                <div class="brand-card-display" style="border-top: 8px solid ${brand.color}">
+                    <img src="${brand.logo}" style="width:50px;">
+                    <h2 style="margin:5px 0;">${brand.name}</h2>
+                    <p>Цена: ${brand.price}$</p>
+                    <button class="main-btn" onclick="buy('${brand.name}', ${brand.price})">КУПИТЬ</button>
+                </div>
+            `;
+        }
+
+        function buy(name, price) {
+            if (balance >= price) {
+                balance -= price;
+                document.getElementById('balance').innerText = balance;
+                alert(`Вы купили ${name}!`);
+                document.getElementById('centerArea').innerHTML = '<h2>УСПЕХ!</h2>';
+            } else {
+                alert("Недостаточно денег!");
+            }
+        }
     </script>
 </body>
 </html>
