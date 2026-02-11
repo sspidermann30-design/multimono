@@ -93,3 +93,154 @@
         .brand-price {
             font-size: 10px;
             color: #888;
+        }
+
+        /* Нижняя панель */
+        .controls {
+            padding: 20px;
+            background: #161616;
+            border-top: 1px solid #333;
+            text-align: center;
+        }
+
+        .roll-btn {
+            background: var(--accent);
+            color: white;
+            border: none;
+            padding: 16px;
+            width: 90%;
+            border-radius: 15px;
+            font-size: 18px;
+            font-weight: bold;
+            cursor: pointer;
+            box-shadow: 0 4px 15px rgba(0, 136, 204, 0.3);
+        }
+
+        .roll-btn:active {
+            transform: scale(0.98);
+        }
+
+        #status-text {
+            margin-bottom: 10px;
+            font-size: 14px;
+            color: #aaa;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="header">
+        <div id="user-name">Загрузка...</div>
+        <div class="balance">$<span id="balance-val">2500</span></div>
+    </div>
+
+    <div class="board" id="board">
+        </div>
+
+    <div class="controls">
+        <div id="status-text">Ваш ход!</div>
+        <button class="roll-btn" onclick="play()">БРОСИТЬ КУБИК 🎲</button>
+    </div>
+
+    <script>
+    const tg = window.Telegram.WebApp;
+tg.expand();
+
+document.getElementById('user-name').innerText = tg.initDataUnsafe.user?.first_name || "Магнат";
+
+// База данных брендов с распределением по группам (цветам)
+const brandData = [
+    { name: "NVIDIA", group: "it", color: "#3498db" }, { name: "Apple", group: "it", color: "#3498db" },
+    { name: "Google", group: "it", color: "#3498db" }, { name: "Microsoft", group: "it", color: "#3498db" },
+    { name: "Amazon", group: "it", color: "#3498db" }, { name: "Tesla", group: "auto", color: "#e74c3c" },
+    { name: "Porsche", group: "auto", color: "#e74c3c" }, { name: "BMW", group: "auto", color: "#e74c3c" },
+    { name: "Toyota", group: "auto", color: "#e74c3c" }, { name: "Mercedes", group: "auto", color: "#e74c3c" },
+    { name: "Nike", group: "fashion", color: "#f39c12" }, { name: "Adidas", group: "fashion", color: "#f39c12" },
+    { name: "Puma", group: "fashion", color: "#f39c12" }, { name: "Gucci", group: "luxury", color: "#f1c40f" },
+    { name: "Rolex", group: "luxury", color: "#f1c40f" }, { name: "Dior", group: "luxury", color: "#f1c40f" },
+    { name: "Coca-Cola", group: "food", color: "#2ecc71" }, { name: "McDonald’s", group: "food", color: "#2ecc71" },
+    { name: "Starbucks", group: "food", color: "#2ecc71" }
+    // Можно дописывать остальные, соблюдая структуру
+];
+
+const brands = brandData.map((b, i) => ({
+    ...b,
+    price: 150 + (i * 30),
+    owned: false,
+    domain: b.name.toLowerCase().replace(/[^a-z0-9]/g, '') + ".com"
+}));
+
+let currentPos = 0;
+let balance = 2500;
+let inventory = [];
+
+function init() {
+    const board = document.getElementById('board');
+    board.innerHTML = '';
+    
+    brands.forEach((brand, i) => {
+        const card = document.createElement('div');
+        // Добавляем класс купленного товара, если он в инвентаре
+        card.className = `brand-card ${i === currentPos ? 'active' : ''} ${brand.owned ? 'owned' : ''}`;
+        card.id = `card-${i}`;
+        card.style.borderTop = `5px solid ${brand.color}`; // Полоска группы
+        
+        const logoUrl = `https://logo.clearbit.com/${brand.domain}`;
+        
+        card.innerHTML = `
+            <img src="${logoUrl}" onerror="this.src='https://img.icons8.com/ios/50/ffffff/company.png'">
+            <div class="brand-name">${brand.name}</div>
+            <div class="brand-price">${brand.owned ? 'КУПЛЕНО' : '$' + brand.price}</div>
+        `;
+        board.appendChild(card);
+    });
+}
+
+function checkCollection(groupName) {
+    const groupItems = brands.filter(b => b.group === groupName);
+    const ownedInGroup = groupItems.filter(b => b.owned);
+    
+    if (groupItems.length === ownedInGroup.length) {
+        balance += 1000; // Бонус за сбор коллекции
+        document.getElementById('balance-val').innerText = balance;
+        tg.showAlert(`🔥 МОНОПОЛИЯ! Вы собрали все бренды сектора ${groupName.toUpperCase()} и получили бонус $1000!`);
+    }
+}
+
+function play() {
+    const dice = Math.floor(Math.random() * 6) + 1;
+    document.getElementById('status-text').innerText = `Выпало: ${dice}`;
+    document.getElementById(`card-${currentPos}`).classList.remove('active');
+
+    currentPos = (currentPos + dice) % brands.length;
+    const newCard = document.getElementById(`card-${currentPos}`);
+    newCard.classList.add('active');
+    newCard.scrollIntoView({ behavior: 'smooth', block: 'center' });
+
+    const brand = brands[currentPos];
+    
+    if (!brand.owned) {
+        setTimeout(() => {
+            tg.showConfirm(`Купить ${brand.name} за $${brand.price}?`, (confirmed) => {
+                if (confirmed) {
+                    if (balance >= brand.price) {
+                        balance -= brand.price;
+                        brand.owned = true;
+                        document.getElementById('balance-val').innerText = balance;
+                        init(); // Перерисовываем доску, чтобы пометить как купленное
+                        checkCollection(brand.group);
+                    } else {
+                        tg.showAlert("Недостаточно денег!");
+                    }
+                }
+            });
+        }, 500);
+    } else {
+        document.getElementById('status-text').innerText = `Это ваш бренд: ${brand.name}`;
+    }
+}
+
+init();
+    </script>
+</body>
+</html>
